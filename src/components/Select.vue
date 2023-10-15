@@ -17,7 +17,7 @@
     >
       <div ref="selectedOptions" class="vs__selected-options">
         <slot
-          v-for="(option, index) in selectedValue"
+          v-for="(option, index) in limitedSelectedValues"
           name="selected-option-container"
           :option="normalizeOptionForSlot(option)"
           :deselect="deselect"
@@ -46,6 +46,18 @@
             </button>
           </span>
         </slot>
+
+        <div
+          v-if="limitSelected && selectedValue.length > limitSelected + 1"
+          class="vs__selected">
+          <slot name="truncated-options" :number="selectedValue.length - limitSelected">
+            <span
+              :aria-label="`${selectedValue.length - limitSelected} other selected entries`"
+              :title="`${selectedValue.length - limitSelected} other selected entries`">
+              …
+            </span>
+          </slot>
+      </div>
 
         <slot name="search" v-bind="scope.search">
           <input
@@ -202,6 +214,15 @@ export default {
       default: null,
     },
 
+    /**
+     * Sets the maximum number of selected options to render
+     * @type {Number}
+     */
+     limitSelected: {
+      type: Number,
+      default: null,
+    },
+  
     /**
      * Disable the entire component.
      * @type {Boolean}
@@ -742,6 +763,14 @@ export default {
       }
 
       return []
+    },
+
+    /**
+     * Visible list of selected values
+     */
+    limitedSelectedValues() {
+      const limit = this.selectedValue.length === this.limitSelected + 1 ? this.limitSelected + 1 : this.limitSelected
+      return limit === null ? this.selectedValue :  this.selectedValue.slice(0, Math.min(this.selectedValue.length, limit))
     },
 
     /**
